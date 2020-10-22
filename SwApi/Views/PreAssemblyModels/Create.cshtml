@@ -13,14 +13,20 @@
         <form asp-action="Create" enctype="multipart/form-data">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <div class="form-group">
+                <label asp-for="Name" class="control-label"></label>
+                <input asp-for="Name" class="form-control" />
+                <span asp-validation-for="Name" class="text-danger"></span>
+            </div>
+            <div class="form-group">
                 <label asp-for="AssemblyFiles" class="control-label"></label>
                 <input asp-for="AssemblyFiles" class="form-control" />
                 <span asp-validation-for="AssemblyFiles" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <label asp-for="Name" class="control-label"></label>
-                <input asp-for="Name" class="form-control" />
-                <span asp-validation-for="Name" class="text-danger"></span>
+                <label asp-for="MainFileName" class="control-label"></label>
+                <select class="form-control" name="MainFileName" id="MainFileName">
+                </select>
+                <span asp-validation-for="AssemblyFiles" class="text-danger"></span>
             </div>
             <div class="form-group">
                 <input type="submit" value="Create" class="btn btn-primary" />
@@ -35,4 +41,30 @@
 
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+
+    <script type="text/javascript">
+        jQuery(function () {
+
+
+            $(document).on('change', '#AssemblyFiles', function () {
+                let names = [];
+                for (var i = 0; i < $("#AssemblyFiles").get(0).files.length; ++i) {
+                    names.push($("#AssemblyFiles").get(0).files[i].name);
+                }
+                names.forEach(function (val, index) {
+                    let o = new Option(val, val);
+                    $(o).html(val);
+                    $("#MainFileName").append(o);
+                });
+            });
+
+ 
+
+        }
+        );
+
+    </script>
 }
+
+
+

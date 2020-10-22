@@ -21,9 +21,9 @@ public class SwApiManager : IHostedService
 
     private const string SW_PATH = @"C:\Program Files\SOLIDWORKS Corp\SOLIDWORKS\SLDWORKS.exe";
 
-    private ISldWorks app;
+    private ISldWorks _app;
 
-    private ModelDoc2 activeModel;
+    private ModelDoc2 _activeModel;
 
 
     public Task StartAsync(CancellationToken stoppingToken)
@@ -45,8 +45,8 @@ public class SwApiManager : IHostedService
 	{
         try
         {
-			app = StartSwApp(SW_PATH);
-            System.Diagnostics.Debug.WriteLine(app.RevisionNumber());
+			_app = StartSwApp();
+            System.Diagnostics.Debug.WriteLine(_app.RevisionNumber());
 
         } catch(Exception ex)
         {
@@ -56,7 +56,7 @@ public class SwApiManager : IHostedService
 
     public bool isAwake()
     {
-        if(app.RevisionNumber() != null)
+        if(_app.RevisionNumber() != null)
         {
             return true;
         } else
@@ -67,8 +67,8 @@ public class SwApiManager : IHostedService
 
     public bool CheckMissingFiles(string path)
     {
-        ModelDoc2 doc = this.OpenSwAssembly(path);
-        var dependancies = doc.GetDependencies(1,1);
+        OpenSwAssembly(path);
+        //var dependancies = doc.GetDependencies(1,1);
 
         Debugger.Break();
 
@@ -88,14 +88,39 @@ public class SwApiManager : IHostedService
     {
         EquationMgr swEqMgr = default(EquationMgr);
 
-        swEqMgr = activeModel.GetEquationMgr();
+        swEqMgr = _activeModel.GetEquationMgr();
 
 
         return swEqMgr;
         
     }
 
-    public ModelDoc2 OpenSwAssembly(string path)
+    public void CloseSwAssembly()
+    {
+        _app.CloseAllDocuments(true);
+    }
+
+
+    public List<string> GetAvailableEquation(string path)
+    {
+        OpenSwAssembly(path);
+
+        var eqMng = _activeModel.GetEquationMgr();
+
+        var availableEquation = new List<string>();
+
+        for(int i = 0;i < eqMng.GetCount(); i++)
+        {
+            availableEquation.Add(eqMng.Equation[i]);
+        }
+
+        CloseSwAssembly();
+        //Debugger.Break();
+
+        return availableEquation;
+    }
+
+    public void OpenSwAssembly(string path)
     {
 
         ModelDoc2 swModel = default(ModelDoc2);
@@ -105,32 +130,51 @@ public class SwApiManager : IHostedService
         string name = null;
         int errors = 0;
         int warnings = 0;
+        int status = 0;
 
         //Set the specifications
-        swDocSpecification = (DocumentSpecification)app.GetOpenDocSpec(path);
+        swDocSpecification = (DocumentSpecification)_app.GetOpenDocSpec(path);
 
-        componentsArray[0] = "food bowl-1@bowl and chute";
+        /*componentsArray[0] = "food bowl-1@bowl and chute";
         components = (object[])componentsArray;
 
         swDocSpecification.ComponentList = components;
         swDocSpecification.Selective = true;
-        name = swDocSpecification.FileName;
 
         swDocSpecification.DocumentType = (int)swDocumentTypes_e.swDocASSEMBLY;
         swDocSpecification.DisplayState = "Default_Display State-1";
         swDocSpecification.UseLightWeightDefault = false;
-        swDocSpecification.LightWeight = true;
+        swDocSpecification.LightWeight = false;
         swDocSpecification.Silent = true;
-        swDocSpecification.IgnoreHiddenComponents = true;
+        swDocSpecification.IgnoreHiddenComponents = true;*/
+
+        swModel = _app.OpenDoc6(
+            path,
+            (int)swDocumentTypes_e.swDocASSEMBLY,
+            (int)swOpenDocOptions_e.swOpenDocOptions_Silent,
+            "",
+            ref status,
+            ref warnings);
+
+        //Debugger.Break();
+        /*
+        try
+        {
+            swModel = (ModelDoc2)_app.OpenDoc7(swDocSpecification);
+        }
+        catch (Exception e)
+        {
+            throw new Exception("Error while opening sld assembly"  + e.Message );
+        }*/
 
         //Open the assembly document as per the specifications
-        swModel = (ModelDoc2)app.OpenDoc7(swDocSpecification);
+        /*
         errors = swDocSpecification.Error;
         warnings = swDocSpecification.Warning;
+        */
 
-        Debugger.Break();
 
-        if(errors > 0)
+        if(status > 0)
         {
             throw new Exception("Error while opening Solidworks assembly");
         }
@@ -141,18 +185,28 @@ public class SwApiManager : IHostedService
             System.Diagnostics.Debug.WriteLine("Warning while opening Soliworks assembly");
         }
 
-        activeModel = swModel;
+        _activeModel = swModel;
 
-        return swModel;
     }
 
-	private static ISldWorks StartSwApp(string appPath, int timeoutSec = 10)
+	private static ISldWorks StartSwApp(int timeoutSec = 10)
     {
+        Process prc;
+
 		var timeout = TimeSpan.FromSeconds(timeoutSec);
 
 		var startTime = DateTime.Now;
 
-		var prc = Process.Start(appPath);
+        var prcs = Process.GetProcessesByName("SLDWORKS");
+
+        if (prcs.Length == 0)
+        {
+		    prc = Process.Start(SW_PATH);
+        } else
+        {
+            prc = prcs.First();
+        }
+
 		ISldWorks app = null;
 
 		while (app == null)

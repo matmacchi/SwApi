@@ -1,0 +1,81 @@
+﻿namespace SwApi.Migrations
+{
+    using System;
+    using System.Data.Entity.Migrations;
+    
+    public partial class Reset : DbMigration
+    {
+        public override void Up()
+        {
+            CreateTable(
+                "dbo.SldAssembly",
+                c => new
+                    {
+                        ID = c.Int(nullable: false),
+                        Path = c.String(),
+                        Name = c.String(),
+                    })
+                .PrimaryKey(t => t.ID)
+                .ForeignKey("dbo.PreAssemblyModel", t => t.ID)
+                .Index(t => t.ID);
+            
+            CreateTable(
+                "dbo.EquationSetter",
+                c => new
+                    {
+                        ID = c.Int(nullable: false, identity: true),
+                        Label = c.String(),
+                        IsActivated = c.Boolean(nullable: false),
+                        EquationTarget = c.Int(nullable: false),
+                        DefaultValue = c.Int(nullable: false),
+                        MinValue = c.Int(nullable: false),
+                        MaxValue = c.Int(nullable: false),
+                        StepValue = c.Int(nullable: false),
+                        ReferenceTag = c.String(),
+                        SldAssembly_ID = c.Int(),
+                    })
+                .PrimaryKey(t => t.ID)
+                .ForeignKey("dbo.SldAssembly", t => t.SldAssembly_ID)
+                .Index(t => t.SldAssembly_ID);
+            
+            CreateTable(
+                "dbo.PartToggle",
+                c => new
+                    {
+                        PartToggleId = c.Int(nullable: false, identity: true),
+                        Label = c.String(),
+                        SldAssembly_ID = c.Int(),
+                    })
+                .PrimaryKey(t => t.PartToggleId)
+                .ForeignKey("dbo.SldAssembly", t => t.SldAssembly_ID)
+                .Index(t => t.SldAssembly_ID);
+            
+            CreateTable(
+                "dbo.PreAssemblyModel",
+                c => new
+                    {
+                        PreAssemblyModelID = c.Int(nullable: false, identity: true),
+                        Path = c.String(),
+                        Name = c.String(),
+                        CreationDate = c.DateTime(nullable: false),
+                        MainFileName = c.String(),
+                    })
+                .PrimaryKey(t => t.PreAssemblyModelID);
+            
+        }
+        
+        public override void Down()
+        {
+            DropForeignKey("dbo.SldAssembly", "ID", "dbo.PreAssemblyModel");
+            DropForeignKey("dbo.PartToggle", "SldAssembly_ID", "dbo.SldAssembly");
+            DropForeignKey("dbo.EquationSetter", "SldAssembly_ID", "dbo.SldAssembly");
+            DropIndex("dbo.PartToggle", new[] { "SldAssembly_ID" });
+            DropIndex("dbo.EquationSetter", new[] { "SldAssembly_ID" });
+            DropIndex("dbo.SldAssembly", new[] { "ID" });
+            DropTable("dbo.PreAssemblyModel");
+            DropTable("dbo.PartToggle");
+            DropTable("dbo.EquationSetter");
+            DropTable("dbo.SldAssembly");
+        }
+    }
+}

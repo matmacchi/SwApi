@@ -16,8 +16,10 @@ namespace SwApi.Data
 
         public DbSet<SwApi.Models.PreAssemblyModel> PreAssemblyModel { get; set; }
 
-        public DbSet<SwApi.Models.AssemblyEquationOption> AssemblyEquationOption { get; set; }
+        public DbSet<SwApi.Models.EquationSetter> EquationSetter { get; set; }
 
-        public DbSet<SwApi.Models.Assembly> Assembly { get; set; }
+        public DbSet<SwApi.Models.SldAssembly> SldAssembly { get; set; }
+
+        public DbSet<SwApi.Models.PartToggle> PartToggle { get; set; }
     }
 }

@@ -18,9 +18,9 @@ namespace SwApi.DAL
         }
 
         public DbSet<PreAssemblyModel> PreAssemblies { get; set; }
-        public DbSet<AssemblyEquationOption> AssemblyEquationOptions { get; set; }
+        public DbSet<EquationSetter> AssemblyEquationOptions { get; set; }
 
-        public DbSet<Assembly> Assemblies { get; set; }
+        public DbSet<SldAssembly> Assemblies { get; set; }
 
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {

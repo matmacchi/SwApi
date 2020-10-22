@@ -21,6 +21,7 @@ using System.Diagnostics;
 using PreAssemblyModel = SwApi.Models.PreAssemblyModel;
 using Microsoft.VisualStudio.Web.CodeGeneration;
 using Microsoft.Extensions.Hosting;
+using System.Data;
 
 namespace SwApi.Controllers
 {
@@ -53,7 +54,7 @@ namespace SwApi.Controllers
             }
 
             var preAssemblyModel = await _context.PreAssemblyModel
-                .FirstOrDefaultAsync(m => m.ID == id);
+                .FirstOrDefaultAsync(m => m.PreAssemblyModelID == id);
             if (preAssemblyModel == null)
             {
                 return NotFound();
@@ -63,9 +64,15 @@ namespace SwApi.Controllers
         }
 
         // GET: PreAssemblyModels/Create
-        public IActionResult Create()
+        public IActionResult Create(PreAssemblyViewModel modelView)
         {
-            return View();
+
+
+           //modelView.MainFileName = modelView.MainFileName.Select(m => new SelectListItem());
+           //modelView.MainFileName = new SelectList(Enumerable.Empty<SelectListItem>());
+
+
+            return View(modelView);
         }
 
 
@@ -76,6 +83,7 @@ namespace SwApi.Controllers
         public async Task<IActionResult> Create(PreAssemblyViewModel modelView,List<IFormFile> assemblyFiles)
         {
             string rootFilePath = "";
+
 
             if (modelView.AssemblyFiles != null)
             {
@@ -104,7 +112,8 @@ namespace SwApi.Controllers
                 Name = modelView.Name,
                 Path = rootFilePath,
                 CreationDate = DateTime.Now,
-                Assembly = null
+                Assembly = null,
+                MainFileName = modelView.MainFileName
             };
 
 
@@ -186,7 +195,7 @@ namespace SwApi.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("ID,Path,Name,CreationDate")] PreAssemblyModel preAssemblyModel)
         {
-            if (id != preAssemblyModel.ID)
+            if (id != preAssemblyModel.PreAssemblyModelID)
             {
                 return NotFound();
             }
@@ -200,7 +209,7 @@ namespace SwApi.Controllers
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!PreAssemblyModelExists(preAssemblyModel.ID))
+                    if (!PreAssemblyModelExists(preAssemblyModel.PreAssemblyModelID))
                     {
                         return NotFound();
                     }
@@ -223,7 +232,7 @@ namespace SwApi.Controllers
             }
 
             var preAssemblyModel = await _context.PreAssemblyModel
-                .FirstOrDefaultAsync(m => m.ID == id);
+                .FirstOrDefaultAsync(m => m.PreAssemblyModelID == id);
             if (preAssemblyModel == null)
             {
                 return NotFound();
@@ -238,6 +247,7 @@ namespace SwApi.Controllers
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             var preAssemblyModel = await _context.PreAssemblyModel.FindAsync(id);
+            //_context.Assembly.Remove(preAssemblyModel.Assembly);
             _context.PreAssemblyModel.Remove(preAssemblyModel);
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
@@ -245,7 +255,7 @@ namespace SwApi.Controllers
 
         private bool PreAssemblyModelExists(int id)
         {
-            return _context.PreAssemblyModel.Any(e => e.ID == id);
+            return _context.PreAssemblyModel.Any(e => e.PreAssemblyModelID == id);
         }
     }
 }
