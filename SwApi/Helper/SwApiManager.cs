@@ -11,6 +11,8 @@ using System.Collections.Generic;
 using Microsoft.Extensions.Hosting;
 using System.Threading.Tasks;
 using System.Threading;
+using SwApi.Helper;
+using System.Reflection;
 
 public class SwApiManager : IHostedService
 {
@@ -24,6 +26,8 @@ public class SwApiManager : IHostedService
     private ISldWorks _app;
 
     private ModelDoc2 _activeModel;
+
+    private AssemblyDoc _activeAssembly;
 
 
     public Task StartAsync(CancellationToken stoppingToken)
@@ -100,6 +104,30 @@ public class SwApiManager : IHostedService
         _app.CloseAllDocuments(true);
     }
 
+    public List<string> GetPartList(string path)
+    {
+        var partList = new List<string>();
+
+        Component2 swComponent;
+
+        OpenSwAssembly(path);
+
+        Object[] components = (Object[])_activeAssembly.GetComponents(true);
+
+        foreach(var component in components)
+        {
+            swComponent = (Component2)component;
+
+            partList.Add(swComponent.Name);
+        }
+
+        CloseSwAssembly();
+
+
+        return partList;
+
+    }
+
 
     public List<string> GetAvailableEquation(string path)
     {
@@ -126,27 +154,13 @@ public class SwApiManager : IHostedService
         ModelDoc2 swModel = default(ModelDoc2);
         DocumentSpecification swDocSpecification = default(DocumentSpecification);
         string[] componentsArray = new string[1];
-        object[] components = null;
-        string name = null;
-        int errors = 0;
         int warnings = 0;
         int status = 0;
 
         //Set the specifications
         swDocSpecification = (DocumentSpecification)_app.GetOpenDocSpec(path);
 
-        /*componentsArray[0] = "food bowl-1@bowl and chute";
-        components = (object[])componentsArray;
 
-        swDocSpecification.ComponentList = components;
-        swDocSpecification.Selective = true;
-
-        swDocSpecification.DocumentType = (int)swDocumentTypes_e.swDocASSEMBLY;
-        swDocSpecification.DisplayState = "Default_Display State-1";
-        swDocSpecification.UseLightWeightDefault = false;
-        swDocSpecification.LightWeight = false;
-        swDocSpecification.Silent = true;
-        swDocSpecification.IgnoreHiddenComponents = true;*/
 
         swModel = _app.OpenDoc6(
             path,
@@ -156,22 +170,6 @@ public class SwApiManager : IHostedService
             ref status,
             ref warnings);
 
-        //Debugger.Break();
-        /*
-        try
-        {
-            swModel = (ModelDoc2)_app.OpenDoc7(swDocSpecification);
-        }
-        catch (Exception e)
-        {
-            throw new Exception("Error while opening sld assembly"  + e.Message );
-        }*/
-
-        //Open the assembly document as per the specifications
-        /*
-        errors = swDocSpecification.Error;
-        warnings = swDocSpecification.Warning;
-        */
 
 
         if(status > 0)
@@ -186,6 +184,8 @@ public class SwApiManager : IHostedService
         }
 
         _activeModel = swModel;
+
+        _activeAssembly = (AssemblyDoc)_activeModel;
 
     }
 

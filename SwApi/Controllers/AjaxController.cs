@@ -7,6 +7,7 @@ using SwApi.Data;
 using System.Text.Json;
 using System.Diagnostics;
 using SwApi.Models;
+using System.Collections;
 
 namespace SwApi.Controllers
 {
@@ -43,12 +44,74 @@ namespace SwApi.Controllers
         }
 
         [HttpPost]
-        public JsonResult AddPartToggle(object form)
+        public JsonResult AddPartTarget(string Label, int PartTarget, string Reference)
         {
-            Debugger.Break();
+            PartToggleTarget target = new PartToggleTarget()
+            {
+                Label = Label,
+                Target = PartTarget,
+                Reference = Reference
+            };
 
-            string data = "";
-            return new JsonResult(data);
+            _context.PartToggleTarget.Add(target);
+            _context.SaveChanges();
+
+            return new JsonResult(new { id = target.PartToggleTargetId, label = target.Label });
+        }
+
+        [HttpPost]
+        public JsonResult AddPartToggle(string Label,List<int> PartToggleTargets,string ReferenceTag)
+        {
+
+            List<PartToggleTarget> partToggleTargets = new List<PartToggleTarget>();
+
+            foreach(var partToggleTarget in PartToggleTargets)
+            {
+                partToggleTargets.Add(_context.PartToggleTarget.Find(partToggleTarget));
+            }
+
+            PartToggle partToggle = new PartToggle()
+            {
+                Label = Label,
+                PartTargets = partToggleTargets,
+                ReferenceTag = ReferenceTag
+            };
+
+            _context.PartToggle.Add(partToggle);
+            _context.SaveChanges();
+
+
+            return new JsonResult(new { id = partToggle.PartToggleId , label = partToggle.Label });
+        }
+
+        [HttpPost]
+        public JsonResult GetEquationTargets(int? PreAssemblyId = null)
+        {
+
+            if (PreAssemblyId == null)
+            {
+                return new JsonResult(new { });
+            }
+
+            var preAssembly = _context.PreAssemblyModel.Find(PreAssemblyId);
+
+            return new JsonResult(preAssembly.EquationLabels);
+        }
+
+        [HttpPost]
+        public JsonResult GetPartTargets(int? PreAssemblyId = null)
+        {
+            if(PreAssemblyId == null)
+            {
+                return new JsonResult(new { });
+            }
+
+
+            var preAssembly = _context.PreAssemblyModel.Find(PreAssemblyId);
+
+            
+
+            return new JsonResult(preAssembly.PartLabels);
         }
 
         [HttpPost]

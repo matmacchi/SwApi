@@ -47,8 +47,11 @@ namespace SwApi.Models
 
         public string ReferenceTag;
 
+        public ICollection<PartToggleTarget> PartTargets { get; set; }
+
         public PartToggle()
         {
+            PartTargets = new HashSet<PartToggleTarget>();
         }
     }
 }

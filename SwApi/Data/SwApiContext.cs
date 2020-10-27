@@ -21,5 +21,7 @@ namespace SwApi.Data
         public DbSet<SwApi.Models.SldAssembly> SldAssembly { get; set; }
 
         public DbSet<SwApi.Models.PartToggle> PartToggle { get; set; }
+
+        public DbSet<SwApi.Models.PartToggleTarget> PartToggleTarget { get; set; }
     }
 }

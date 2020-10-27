@@ -105,7 +105,25 @@ namespace SwApi.Controllers
                     file.CopyTo(new FileStream(filePath, FileMode.Create));
                 }
 
+
             }
+
+
+            if (ModelState.IsValid)
+            {
+                var model = PopulatePreAssembly(modelView,rootFilePath);
+                _context.Add(model);
+                await _context.SaveChangesAsync();
+                return RedirectToAction(nameof(Index));
+            }
+            return View();
+        }
+
+
+        private PreAssemblyModel PopulatePreAssembly(PreAssemblyViewModel modelView, string rootFilePath)
+        {
+
+
 
             var model = new PreAssemblyModel
             {
@@ -113,20 +131,21 @@ namespace SwApi.Controllers
                 Path = rootFilePath,
                 CreationDate = DateTime.Now,
                 Assembly = null,
-                MainFileName = modelView.MainFileName
+                MainFileName = modelView.MainFileName,
             };
 
+            var equations = _swApiManager.GetAvailableEquation(model.GetMainFilePath());
+            var parts = _swApiManager.GetPartList(model.GetMainFilePath());
+
+            model.PartLabels = parts;
+            model.EquationLabels = equations;
 
 
-            // to do  : Return something
-            if (ModelState.IsValid)
-            {
-                _context.Add(model);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
-            }
-            return View();
+            return model;
+
         }
+        
+
 
         private bool CheckMissingFiles(string assemblyFile)
         {

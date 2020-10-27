@@ -15,6 +15,8 @@ namespace SwApi.Models
 
         public string Name { get; set; }
 
+        public string Reference { get; set; }
+
         public virtual PreAssemblyModel PreAssembly { get; set; }
 
         public ICollection<EquationSetter> Equations { get; set; }

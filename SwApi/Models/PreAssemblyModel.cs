@@ -1,8 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Linq;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using Newtonsoft.Json;
 
 namespace SwApi.Models
 {
@@ -14,7 +17,32 @@ namespace SwApi.Models
         public string Name { get; set; }
         public DateTime CreationDate { get; set; }
 
-        public string MainFileName {get;set;}
+        public string MainFileName { get; set; }
+
+        public string _equationLabels { get; set; }
+
+        public string _partsLabels { get; set; }
+
+        [NotMapped]
+        public List<string> EquationLabels { 
+            get{
+                return _equationLabels.Split(';').ToList();
+            }
+            set { _equationLabels = string.Join(";", value); }
+            }
+
+        [NotMapped]
+        public List<string> PartLabels
+        {
+            get
+            {
+                return _partsLabels.Split(';').ToList();
+            }
+            set
+            {
+                _partsLabels = string.Join(";", value);
+            }
+        }
 
 
 

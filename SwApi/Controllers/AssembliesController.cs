@@ -19,7 +19,7 @@ namespace SwApi.Controllers
         private readonly SwApiContext _context;
         private readonly SwApiManager _swApiMng;
 
-        public AssembliesController(SwApiContext context,SwApiManager swApiManager)
+        public AssembliesController(SwApiContext context, SwApiManager swApiManager)
         {
             _context = context;
             _swApiMng = swApiManager;
@@ -40,7 +40,7 @@ namespace SwApi.Controllers
 
             var preAssemblyModels = _context.PreAssemblyModel.Where(pa => pa.Assembly == null).ToList();
 
-            foreach(var preAssemblyModel in preAssemblyModels)
+            foreach (var preAssemblyModel in preAssemblyModels)
             {
                 preAssemblies.Add(new SelectListItem()
                 {
@@ -50,7 +50,7 @@ namespace SwApi.Controllers
             }
 
 
-            model.PreAssemblyChoices = new SelectList(preAssemblies, "Value","Text");
+            model.PreAssemblyChoices = new SelectList(preAssemblies, "Value", "Text");
 
             return model;
         }
@@ -98,7 +98,7 @@ namespace SwApi.Controllers
             var rawEquations = _swApiMng.GetAvailableEquation(preAssembly.GetMainFilePath());
             List<EquationSetter> equationsList = new List<EquationSetter>();
 
-            for(int i =0;i < rawEquations.Count; i++)
+            for (int i = 0; i < rawEquations.Count; i++)
             {
                 EquationSetter equation = new EquationSetter()
                 {
@@ -118,15 +118,7 @@ namespace SwApi.Controllers
         }
 
 
-        public IActionResult CreatePage2(int PreAssemblyChoices)
-        {
-            var model = new AssemblyView();
-            model.selectedPreAssemblyId = PreAssemblyChoices;
-            var preAssembly = _context.PreAssemblyModel.Find(PreAssemblyChoices);
-            model.Equations = PopulateEquations(preAssembly); 
-            Debugger.Break();
-            return View(model);
-        }
+
 
         // GET: Assemblies/Create
         public IActionResult Create()
@@ -143,19 +135,38 @@ namespace SwApi.Controllers
         // more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(AssemblyView modelView)
+        public async Task<IActionResult> Create(string assemblyLabel,int PreAssemblyChoices, List<int> Equations, List<int> PartToggles)
         {
 
-            var @assembly = new SldAssembly();
+            PreAssemblyModel preAssembly = _context.PreAssemblyModel.Find(PreAssemblyChoices);
+            List<EquationSetter> equationSetters = new List<EquationSetter>();
+            foreach(var equationSetterId in Equations)
+            {
+                equationSetters.Add(_context.EquationSetter.Find(equationSetterId));
+            }
+            List<PartToggle> partToggles = new List<PartToggle>();
+            foreach(var partToggleId in PartToggles)
+            {
+                partToggles.Add(_context.PartToggle.Find(partToggleId));
+            }
+
+            var swAssembly = new SldAssembly()
+            {
+                Reference = assemblyLabel,
+                PreAssembly = preAssembly,
+                Equations = equationSetters,
+                PartToggles = partToggles
+            };
+
 
             if (ModelState.IsValid)
             {
-                _context.Add(@assembly);
+                _context.Add(swAssembly);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["AssemblyID"] = new SelectList(_context.PreAssemblyModel, "PreAssemblyModelID", "PreAssemblyModelID", @assembly.ID);
-            return View(modelView);
+            ViewData["AssemblyID"] = new SelectList(_context.PreAssemblyModel, "PreAssemblyModelID", "PreAssemblyModelID", swAssembly.ID);
+            return View(new PreAssemblyViewModel());
         }
 
         // GET: Assemblies/Edit/5
@@ -245,5 +256,7 @@ namespace SwApi.Controllers
         {
             return _context.SldAssembly.Any(e => e.ID == id);
         }
+
+        
     }
 }

@@ -13,7 +13,7 @@ namespace SwApi.Models
 
         public IEnumerable<SelectListItem> PreAssemblyChoices { get; set; }
 
-        public int selectedPreAssemblyId {get;set;}
+        public int selectedPreAssemblyId { get; set; }
 
         public string Path { get; set; }
 
@@ -22,7 +22,10 @@ namespace SwApi.Models
 
         public List<int> AssemblyEquationOptionIds { get; set; }
 
-        public List<EquationSetter> Equations { get; set; }
+        public List<string> EquationLabels { get; set; }
+
+        public List<string> PartsLabels { get; set; }
 
     }
+
 }

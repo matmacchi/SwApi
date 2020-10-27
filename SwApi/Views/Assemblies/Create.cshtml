@@ -13,26 +13,27 @@
         <form asp-action="Create">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <div class="form-group">
+                <label for="AssemblyLabel">Assembly Label</label>
+                <input type="text" id="AssemblyLabel" name="AssemblyLabel" />
+            </div>
+            <div class="form-group">
                 @Html.DropDownList("PreAssemblyChoices", Model.PreAssemblyChoices as MultiSelectList, "Pre Assembly", new { @class = "custom-select" })
             </div>
             <div class="form-part2 hidden">
                 <div class="form-group">
-                    <label asp-for="Equations" class="conrol-label"></label>
+                    <label for="Equations" class="conrol-label"></label>
                     <div class="input-group">
                         <select name="Equations" id="Equations" multiple="multiple" class="js-tags form-control">
-                            <option value="0">Equation 1</option>
                         </select>
                         <div class="input-group-append">
                             <button class="btn btn-outline-secondary" type="button" data-toggle="modal" data-target="#addEquationSetter">Add</button>
                         </div>
                     </div>
-                    <span asp-validation-for="Equations" class="text-danger"></span>
                 </div>
                 <div class="form-group">
-                    <label class="control-label">Part Toggles</label>
+                    <label for="ListParts" class="control-label">Part Toggles</label>
                     <div class="input-group">
-                    <select name="ListParts" id="ListParts" multiple="multiple" class="js-tags form-control">
-                        <option value="0">Part 1</option>
+                    <select name="PartToggles" id="PartToggles" multiple="multiple" class="js-tags form-control">
                     </select>
                     <div class="input-group-append">
                         <button class="btn btn-outline-secondary" type="button" data-toggle="modal" data-target="#addPartToggle">Add</button>
@@ -63,9 +64,6 @@
                     <div class="form-group">
                         <label for="EquationTarget" class="conrol-label">Equation Target</label>
                         <select class="form-control" id="EquationTarget" name="EquationTarget">
-                            <option value="0">Equation 1</option>
-                            <option value="1">Equation 2</option>
-                            <option value="3">Equation 3</option>
                         </select>
                     </div>
                     <div class="form-group">
@@ -100,29 +98,48 @@
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="container">
-                <form id="AddPartToggleForm" action="../Ajax/AddPartToggle" method="post">
+                <form id="AddPartToggle" action="../Ajax/AddPartToggle" method="post">
                     <div class="form-group">
                         <label for="Label" class="control-label">Label</label>
                         <input type="text" name="Label" id="Label" class="form-control" />
                     </div>
                     <div class="form-group">
-                        <label for="Parts" class="conrol-label">Parts</label>
-                        <select class="form-control" id="Parts" name="Parts">
-                            <option value="0">Part 1</option>
-                            <option value="1">Part 2</option>
-                            <option value="3">Part 3</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="PartLabel0">Default Value</label>
-                        <input type="text" id="PartLabel0" name="PartLabel0" class="PartLabel0" />
-                    </div>
-                    <div class="form-group">
-                        <label for="PartReference0">Part reference</label>
-                        <input type="text" id="PartReference0" name="PartReference0" class="MinValue" />
+                        <label for="PartToggleTarget">PartToggle Target</label>
+                        <div class="input-group">
+                            <select name="PartToggleTargets" id="PartToggleTargets" multiple="multiple" class="js-tags form-control">
+                            </select>
+                            <div class="input-group-append">
+                                <button class="btn btn-outline-secondary" type="button" data-toggle="modal" data-target="#addPartToggleTarget">Add</button>
+                            </div>
+                        </div>
                     </div>
                     <div class="form-group">
                         <label for="ReferenceTag">Reference Tag</label>
+                        <input type="text" id="ReferenceTag" name="ReferenceTag" class="ReferenceTag" />
+                    </div>
+                    <input type="submit" value="Add" class="btn btn-primary" />
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="addPartToggleTarget" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="addPartToggleTarget" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="container">
+                <form id="AddPartToggleTarget" action="../Ajax/AddPartTarget" method="post">
+                    <div class="form-group">
+                        <label for="Label" class="control-label">Label</label>
+                        <input type="text" name="Label" id="Label" class="form-control" />
+                    </div>
+                    <div class="form-group">
+                        <label for="Label" class="control-label">Part</label>
+                        <select name="PartTarget" id="PartTarget" class="js-tags form-control">
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="ReferenceTag">Reference</label>
                         <input type="text" id="ReferenceTag" name="ReferenceTag" class="ReferenceTag" />
                     </div>
                     <input type="submit" value="Add" class="btn btn-primary" />
@@ -147,13 +164,43 @@
                     $('.form-part2').hide();
                 }
 
+                $('#EquationTarget').empty();
+
+                $.ajax({
+                    type: "post",
+                    url: "../Ajax/GetEquationTargets",
+                    data: { PreAssemblyId: preAssembly },
+                    success: function (data) {
+                        data.forEach(function (e,i) {
+                            let o = new Option(i, e);
+                            $(o).html(e);
+                            $('#EquationTarget').append(o);
+                        });
+                    }
+                });
+
+                $('#PartTarget').empty();
+
+                $.ajax({
+                    type: "post",
+                    url: "../Ajax/GetPartTargets",
+                    data: { PreAssemblyId: preAssembly },
+                    success: function (data) {
+                        data.forEach(function (e, i) {
+                            let o = new Option(i, e);
+                            $(o).html(e);
+                            $('#PartTarget').append(o);
+                        });
+                    }
+                });
+
             });
 
             $(".js-tags").select2({
                 tags: true
             });
 
-            $('#AddEquationSetterForm,#AddPartToggle').on('submit', function (e) {
+            $('#AddEquationSetterForm,#AddPartToggle,#AddPartToggleTarget').on('submit', function (e) {
 
                 e.preventDefault();
                 let form = $(this);
@@ -163,14 +210,24 @@
                     url: form.attr('action'),
                     data: form.serialize(),
                     success: function (data) {
-                        if (form.attr('id') == '#AddEquationSetterForm') {
-                            let o = new Option(data.id, data.label);
+                        if (form.attr('id') == 'AddEquationSetterForm') {
+                            let o = new Option(data.label, data.id);
+                            o.selected = true;
                             $(o).html(data.label);
                             $("#Equations").append(o);
-                        } else {
-                            let o = new Option(data.value, data.text);
-                            $(o).html(data.text);
-                            $("#PartToggle").append(o);
+                            $('#addEquationSetter').modal('hide');
+                        } else if (form.attr('id') == 'AddPartToggle') {
+                            let o = new Option(data.label, data.id);
+                            $(o).html(data.label);
+                            o.selected = true;
+                            $("#PartToggles").append(o);
+                            $('#addPartToggle').modal('hide');
+                        } else if (form.attr('id') == "AddPartToggleTarget"){
+                            let o = new Option(data.label,data.id);
+                            o.selected = true;
+                            $(o).html(data.label);
+                            $("#PartToggleTargets").append(o);
+                            $('#addPartToggleTarget').modal('hide');
                         }
                     }
                 });
